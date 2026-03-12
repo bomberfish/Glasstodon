@@ -2,4 +2,6 @@
     <string name="app_name">Glasstodon</string>
     <string name="title_activity_main">Hello World Immersion</string>
     <string name="hello_world">Hello world!</string>
+    <string name="history_empty">Empty</string>
+    <string name="history_empty_detail">No scan history</string>
 </resources>
