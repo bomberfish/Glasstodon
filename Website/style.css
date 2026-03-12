@@ -1,0 +1,193 @@
+/* --- ROBOTO CLASSIC: NORMAL WEIGHTS --- */
+
+/* Thin */
+@font-face {
+  font-family: 'RobotoClassic';
+  src: url('/assets/fonts/Roboto-Thin.woff2') format('woff2'),
+       url('/assets/fonts/Roboto-Thin.woff') format('woff'),
+       url('/assets/fonts/Roboto-Thin.ttf') format('truetype'),
+       url('/assets/fonts/Roboto-Thin.eot'),
+       local('Roboto Thin'), local('Roboto-Thin');
+  font-weight: 100;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Light */
+@font-face {
+  font-family: 'RobotoClassic';
+  src: url('/assets/fonts/Roboto-Light.woff2') format('woff2'),
+       url('/assets/fonts/Roboto-Light.woff') format('woff'),
+       url('/assets/fonts/Roboto-Light.ttf') format('truetype'),
+       url('/assets/fonts/Roboto-Light.eot'),
+       local('Roboto Light'), local('Roboto-Light');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Regular */
+@font-face {
+  font-family: 'RobotoClassic';
+  src: url('/assets/fonts/Roboto-Regular.woff2') format('woff2'),
+       url('/assets/fonts/Roboto-Regular.woff') format('woff'),
+       url('/assets/fonts/Roboto-Regular.ttf') format('truetype'),
+       url('/assets/fonts/Roboto-Regular.eot'),
+       local('Roboto'), local('Roboto-Regular');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Medium */
+@font-face {
+  font-family: 'RobotoClassic';
+  src: url('/assets/fonts/Roboto-Medium.woff2') format('woff2'),
+       url('/assets/fonts/Roboto-Medium.woff') format('woff'),
+       url('/assets/fonts/Roboto-Medium.ttf') format('truetype'),
+       url('/assets/fonts/Roboto-Medium.eot'),
+       local('Roboto Medium'), local('Roboto-Medium');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Bold */
+@font-face {
+  font-family: 'RobotoClassic';
+  src: url('/assets/fonts/Roboto-Bold.woff2') format('woff2'),
+       url('/assets/fonts/Roboto-Bold.woff') format('woff'),
+       url('/assets/fonts/Roboto-Bold.ttf') format('truetype'),
+       url('/assets/fonts/Roboto-Bold.eot'),
+       local('Roboto Bold'), local('Roboto-Bold');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Black */
+@font-face {
+  font-family: 'RobotoClassic';
+  src: url('/assets/fonts/Roboto-Black.woff2') format('woff2'),
+       url('/assets/fonts/Roboto-Black.woff') format('woff'),
+       url('/assets/fonts/Roboto-Black.ttf') format('truetype'),
+       url('/assets/fonts/Roboto-Black.eot'),
+       local('Roboto Black'), local('Roboto-Black');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* --- ROBOTO CLASSIC: ITALIC WEIGHTS --- */
+
+/* Thin Italic */
+@font-face {
+  font-family: 'RobotoClassic';
+  src: url('/assets/fonts/Roboto-ThinItalic.woff2') format('woff2'),
+       url('/assets/fonts/Roboto-ThinItalic.woff') format('woff'),
+       url('/assets/fonts/Roboto-ThinItalic.ttf') format('truetype'),
+       url('/assets/fonts/Roboto-ThinItalic.eot'),
+       local('Roboto Thin Italic'), local('Roboto-ThinItalic');
+  font-weight: 100;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Light Italic */
+@font-face {
+  font-family: 'RobotoClassic';
+  src: url('/assets/fonts/Roboto-LightItalic.woff2') format('woff2'),
+       url('/assets/fonts/Roboto-LightItalic.woff') format('woff'),
+       url('/assets/fonts/Roboto-LightItalic.ttf') format('truetype'),
+       url('/assets/fonts/Roboto-LightItalic.eot'),
+       local('Roboto Light Italic'), local('Roboto-LightItalic');
+  font-weight: 300;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Italic (Regular) */
+@font-face {
+  font-family: 'RobotoClassic';
+  src: url('/assets/fonts/Roboto-Italic.woff2') format('woff2'),
+       url('/assets/fonts/Roboto-Italic.woff') format('woff'),
+       url('/assets/fonts/Roboto-Italic.ttf') format('truetype'),
+       url('/assets/fonts/Roboto-Italic.eot'),
+       local('Roboto Italic'), local('Roboto-Italic');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Medium Italic */
+@font-face {
+  font-family: 'RobotoClassic';
+  src: url('/assets/fonts/Roboto-MediumItalic.woff2') format('woff2'),
+       url('/assets/fonts/Roboto-MediumItalic.woff') format('woff'),
+       url('/assets/fonts/Roboto-MediumItalic.ttf') format('truetype'),
+       url('/assets/fonts/Roboto-MediumItalic.eot'),
+       local('Roboto Medium Italic'), local('Roboto-MediumItalic');
+  font-weight: 500;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Bold Italic */
+@font-face {
+  font-family: 'RobotoClassic';
+  src: url('/assets/fonts/Roboto-BoldItalic.woff2') format('woff2'),
+       url('/assets/fonts/Roboto-BoldItalic.woff') format('woff'),
+       url('/assets/fonts/Roboto-BoldItalic.ttf') format('truetype'),
+       url('/assets/fonts/Roboto-BoldItalic.eot'),
+       local('Roboto Bold Italic'), local('Roboto-BoldItalic');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* Black Italic */
+@font-face {
+  font-family: 'RobotoClassic';
+  src: url('/assets/fonts/Roboto-BlackItalic.woff2') format('woff2'),
+       url('/assets/fonts/Roboto-BlackItalic.woff') format('woff'),
+       url('/assets/fonts/Roboto-BlackItalic.ttf') format('truetype'),
+       url('/assets/fonts/Roboto-BlackItalic.eot'),
+       local('Roboto Black Italic'), local('Roboto-BlackItalic');
+  font-weight: 900;
+  font-style: italic;
+  font-display: swap;
+}
+
+/* --- GLOBAL STYLING & RENDERING TWEAKS --- */
+
+body {
+  font-family: 'RobotoClassic', 'RobotoDraft', 'Roboto Flex', Roboto, 'Helvetica Neue', Helvetica, system-ui, Arial, sans-serif;
+  
+  /* The 2011 version was designed for lower DPI screens. 
+     These properties help it look crisp on modern displays. */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  
+  /* Slight letter-spacing often helps the original Roboto feel 
+     less "crowded" on modern web layouts. */
+  letter-spacing: 0.01em;
+  
+  text-shadow: 0 0 1px rgba(0,0,0,0.01);
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  background-size: cover;
+  background-position: center;
+
+  /* currently a placeholder. lol */
+  background-image: url('/assets/img/bg.png');
+}
+
+.mui--text-display4,
+.mui--text-display3 {
+  font-weight: 100;
+}
+.mui--text-display2,
+.mui--text-display1,
+.mui--text-headline {
+  font-weight: 300;
+}

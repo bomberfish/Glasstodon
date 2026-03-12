@@ -1,0 +1,59 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link href="//cdn.muicss.com/mui-0.10.3/css/mui.min.css" rel="stylesheet" type="text/css" />
+    <script src="//cdn.muicss.com/mui-0.10.3/js/mui.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet">
+  </head>
+  <body>
+    <div class="mui-container">
+        <div class="mui-panel">
+            <form class="mui-form" id="form">
+                <legend>Log in to Mastodon</legend>
+                <div class="mui-textfield">
+                  <input type="url" name="instance" placeholder="Instance Domain">
+                </div>
+                <button type="submit" class="mui-btn mui-btn--raised">Submit</button>
+            </form>
+        </div>
+      </div>
+  </body>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const instance = localStorage.getItem('instance');
+      if (instance) {
+        document.querySelector('input[name="instance"]').value = instance;
+      }
+    });
+
+    document.getElementById('form').addEventListener('submit', async(e) => {
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      localStorage.setItem('instance', data.instance);
+      // start mastodon auth flow
+      const redirectUri = window.location.protocol + "//" + window.location.host + "/callback.html";
+      const scopes = 'read write follow profile push';
+      const response = await fetch(data.instance + '/api/v1/apps', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          client_name: 'Glasstodon',
+          redirect_uris: `${redirectUri}`,
+          scopes: scopes,
+          website: window.location.origin
+        })
+      });
+      const appData = await response.json();
+      console.log(appData);
+      const authUrl = `${data.instance}/oauth/authorize?client_id=${appData.client_id}&scope=${encodeURIComponent(scopes)}&response_type=code&force_login=true&redirect_uri=${encodeURIComponent(redirectUri)}`;
+      window.location.href = authUrl;
+    });
+  </script>
+</html>
