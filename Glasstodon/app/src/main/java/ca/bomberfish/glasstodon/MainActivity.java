@@ -5,7 +5,7 @@ import com.google.android.glass.widget.CardBuilder;
 import com.google.android.glass.widget.CardScrollAdapter;
 import com.google.android.glass.widget.CardScrollView;
 import ca.bomberfish.glasstodon.model.Account;
-import main.java.ca.bomberfish.glasstodon.ScanActivity;
+
 import android.content.Intent;
 import android.app.Activity;
 import android.content.Context;
