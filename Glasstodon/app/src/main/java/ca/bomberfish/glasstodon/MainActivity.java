@@ -4,14 +4,19 @@ import com.google.android.glass.media.Sounds;
 import com.google.android.glass.widget.CardBuilder;
 import com.google.android.glass.widget.CardScrollAdapter;
 import com.google.android.glass.widget.CardScrollView;
-
+import ca.bomberfish.glasstodon.model.Account;
+import main.java.ca.bomberfish.glasstodon.ScanActivity;
+import android.content.Intent;
 import android.app.Activity;
 import android.content.Context;
 import android.media.AudioManager;
 import android.os.Bundle;
+import android.os.AsyncTask;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
+import java.io.IOException;
 
 /**
  * An {@link Activity} showing a tuggable "Hello World!" card.
@@ -35,11 +40,81 @@ public class MainActivity extends Activity {
      */
     private View mView;
 
+    private static final int REQUEST_CODE_SCAN = 1;
+
+    AppStorage storage;
+
+    Account account;
+
+    private class FetchAccountTask extends AsyncTask<Void, Void, Account> {
+        private IOException error;
+        
+        @Override
+        protected Account doInBackground(Void... voids) {
+            try {
+                MastoAPI api = new MastoAPI(storage.getInstanceUrl(), storage.getAccessToken());
+                return api.getMe();
+            } catch (IOException e) {
+                // Handle error (e.g. show a message to the user)
+                Log.e("MainActivity", "Failed to fetch account info: " + e.getMessage());
+                error = e;
+                return null;
+            }
+        }
+
+        @Override
+        protected void onPostExecute(Account result) {
+            if (result != null) {
+                account = result;
+                mView = buildView();
+            } else {
+                // Handle error (e.g. show a message to the user)
+                Log.e("MainActivity", "Failed to fetch account info: " + error.getMessage());
+                mView = new CardBuilder(MainActivity.this, CardBuilder.Layout.TEXT)
+                        .setText("Failed to load account info.\nPlease check your network connection and try again.")
+                        .getView();
+            }
+            mCardScroller.getAdapter().notifyDataSetChanged();
+        }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == REQUEST_CODE_SCAN) {
+            if (resultCode == RESULT_OK) {
+                // Successfully got credentials from the scan activity, save them and refresh the view
+                String instanceUrl = data.getStringExtra("InstanceURL");
+                String accessToken = data.getStringExtra("AccessToken");
+                storage.saveCredentials(instanceUrl, accessToken);
+                setupView();
+            } else {
+                // Failed to get credentials, exit the app
+                finish();
+            }
+        }
+    }
+
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
 
-        mView = buildView();
+        storage = new AppStorage(this);
+
+        if (!storage.isLoggedIn()) {
+            // Not logged in, go to the scan activity to get credentials
+            Intent intent = new Intent(this, ScanActivity.class);
+            startActivityForResult(intent, REQUEST_CODE_SCAN);
+        } else {
+            setupView();
+        }
+    }
+
+    private void setupView() {
+        mView = new CardBuilder(this, CardBuilder.Layout.TEXT)
+        .setText("Signing in...")
+        .getView();
+
 
         mCardScroller = new CardScrollView(this);
         mCardScroller.setAdapter(new CardScrollAdapter() {
@@ -76,17 +151,25 @@ public class MainActivity extends Activity {
             }
         });
         setContentView(mCardScroller);
+        mCardScroller.activate();
+
+        // Fetch account info in the background and update the view when done
+        new FetchAccountTask().execute();
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        mCardScroller.activate();
+        if (mCardScroller != null) {
+            mCardScroller.activate();
+        }
     }
 
     @Override
     protected void onPause() {
-        mCardScroller.deactivate();
+        if (mCardScroller != null) {
+            mCardScroller.deactivate();
+        }
         super.onPause();
     }
 
@@ -96,7 +179,11 @@ public class MainActivity extends Activity {
     private View buildView() {
         CardBuilder card = new CardBuilder(this, CardBuilder.Layout.TEXT);
 
-        card.setText(R.string.hello_world);
+        String displayName = account.getDisplayNameOrUsername();
+        String info = displayName + "\n@" + account.acct
+            + "\n\n" + account.followersCount + " followers · " + account.followingCount + " following";
+        card.setText(info);
+
         return card.getView();
     }
 

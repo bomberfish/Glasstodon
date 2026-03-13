@@ -32,7 +32,10 @@
     const instance = localStorage.getItem("instance");
     if (code && instance) {
       const qr = new QRCode(document.getElementById("qrcode"), {
-        text: JSON.stringify({ code, instance }),
+        text: JSON.stringify({ 
+          instance: instance,
+          token: code,
+        }),
         width: 256,
         height: 256,
       });
