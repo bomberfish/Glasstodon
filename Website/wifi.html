@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="//cdn.muicss.com/mui-0.10.3/css/mui.min.css" rel="stylesheet" type="text/css" />
+  <script src="//cdn.muicss.com/mui-0.10.3/js/mui.min.js"></script>
+  <script src="/qrcode.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <title>Glasstodon - OAuth Callback</title>
+  <style>
+    #qrpanel {
+        display: none;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="mui-container-fluid">
+    <div id="hero">
+      <span id="logo" class="material-icons">wifi_password</span>
+      <h1 class="mui--text-display3">Wi-Fi Setup</h1>
+      <p class="mui--text-headline">Enter your Wi-Fi network's credentials to connect.</p>
+    </div>
+    <div class="mui-panel">
+        <form class="mui-form" id="form">
+        <legend>Network Credentials</legend>
+        <p>Enter your Wi-Fi network's credentials. Data entered here is locally processed and never sent anywhere.</p>
+        <div class="mui-textfield">
+            <input type="text" name="ssid" placeholder="Required" required>
+            <label>SSID</label>
+        </div>
+        <div class="mui-select">
+            <select name="security" required>
+                <option value="WPA" selected>WPA/WPA2</option>
+                <option value="WEP">WEP</option>
+                <option value="nopass">None</option>
+            </select>
+            <label>Security Type</label>
+        </div>
+        <div class="mui-textfield">
+            <input type="password" name="password" placeholder="Password">
+            <label>Password</label>
+        </div>
+        <button type="submit" class="mui-btn mui-btn--primary mui-btn--raised">Submit</button>
+        </form>
+    </div>
+    <div class="mui-panel" id="qrpanel">
+        <span>Scan this QR code with Glass.</span>
+        <div id="qrcode"></div>
+    </div>
+  </div>
+</body>
+<script defer>
+  document.getElementById('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    const wifiConfig = `WIFI:S:${data.ssid};T:${data.security};P:${data.password ? data.password : ''};;`;
+    new QRCode(document.getElementById("qrcode"), wifiConfig);
+    document.getElementById('qrpanel').style.display = 'block';
+  });
+</script>
+
+</html>

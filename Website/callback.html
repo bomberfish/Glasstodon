@@ -2,6 +2,8 @@
 <html>
 
 <head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
   <meta charset="utf-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -14,11 +16,16 @@
 </head>
 
 <body>
-  <div class="mui-container">
+  <div class="mui-container-fluid">
+    <div id="hero">
+      <span id="logo" class="material-icons">login</span>
+      <h1 class="mui--text-display3">OAuth Callback</h1>
+      <p class="mui--text-headline">Almost there! Follow the instructions below to complete the login process.</p>
+    </div>
     <div class="mui-panel">
-      <h1 id="title">OAuth Callback</h1>
+      <h1 id="title">Almost there...</h1>
       <p id="status">Hang on, generating QR code...</p>
-      <div id="qrcode" title="click to reveal token" style="cursor: pointer;" onclick="alert(window.accessToken)"></div>
+      <div id="qrcode" title="click to reveal token" onclick="alert(window.accessToken)"></div>
     </div>
   </div>
 </body>
@@ -73,9 +80,9 @@
           width: 256,
           height: 256,
         });
-
+        document.getElementById("title").textContent = "Scan the QR code";
         document.getElementById("status").textContent =
-          "Scan this QR code with Glass to complete the login process.";
+          "Open the Glasstodon app on Glass and scan this QR code to complete the login process.";
       } catch (err) {
         document.getElementById("title").textContent = "Whoops!";
         document.getElementById("status").innerHTML =

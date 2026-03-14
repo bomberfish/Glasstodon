@@ -1,63 +1,98 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link href="//cdn.muicss.com/mui-0.10.3/css/mui.min.css" rel="stylesheet" type="text/css" />
-    <script src="//cdn.muicss.com/mui-0.10.3/js/mui.min.js"></script>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet">
-    <title>Glasstodon - Getting Started</title>
-  </head>
-  <body>
-    <div class="mui-container">
-        <div class="mui-panel">
-            <form class="mui-form" id="form">
-                <legend>Log in to Mastodon</legend>
-                <div class="mui-textfield">
-                  <input type="url" name="instance" placeholder="Instance Domain">
-                </div>
-                <button type="submit" class="mui-btn mui-btn--raised">Submit</button>
-            </form>
-        </div>
-      </div>
-  </body>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-      const instance = localStorage.getItem('instance');
-      if (instance) {
-        document.querySelector('input[name="instance"]').value = instance;
-      }
-    });
 
-    document.getElementById('form').addEventListener('submit', async(e) => {
-      e.preventDefault();
-      const data = Object.fromEntries(new FormData(e.target).entries());
-      localStorage.setItem('instance', data.instance);
-      // start mastodon auth flow
-      let redirectUri = window.location.protocol + "//" + window.location.host + "/callback.html";
-      const scopes = 'read write follow profile push';
-      const response = await fetch(data.instance + '/api/v1/apps', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          client_name: 'Glasstodon',
-          redirect_uris: `${redirectUri}`,
-          scopes: scopes,
-          website: window.location.origin
-        })
-      });
-      const appData = await response.json();
-      const clientId = appData.client_id;
-      const clientSecret = appData.client_secret;
-      redirectUri = `${redirectUri}?client_id=${clientId}&client_secret=${clientSecret}`;
-      console.log(appData);
-      const authUrl = `${data.instance}/oauth/authorize?client_id=${clientId}&scope=${encodeURIComponent(scopes)}&response_type=code&force_login=true&redirect_uri=${encodeURIComponent(redirectUri)}`;
-      window.location.href = authUrl;
+<head>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com">
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link href="//cdn.muicss.com/mui-0.10.3/css/mui.min.css" rel="stylesheet" type="text/css" />
+  <script src="//cdn.muicss.com/mui-0.10.3/js/mui.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <title>Glasstodon - Getting Started</title>
+  <style>
+    h2, legend {
+      margin-top: 0.35rem;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="mui-container-fluid">
+    <div id="hero">
+      <span id="logo" class="material-icons">settings_suggest</span>
+      <h1 class="mui--text-display3">Getting Started</h1>
+      <p class="mui--text-headline">Follow the instructions below to get Glasstodon up and running.</p>
+    </div>
+    <div class="mui-panel"> 
+      <h2>Wi-Fi Setup</h2>
+      <p>You'll need an internet connection to use the app. If you don't already have one, you can set it up by clicking the below button.</p>
+      <button class="mui-btn mui-btn--flat mui-btn--primary" onclick="window.location.href='/wifi.html'">
+        <span class="material-icons">wifi_password</span>
+        Set up Wi-Fi
+      </button>
+    </div>
+    <div class="mui-panel">
+      <h2>Installation</h2>
+      <p>Since Google shut down all Glass-related services a while ago, you'll need to sideload the app using ADB. Don't worry, it's pretty straightforward!</p>
+      <ol>
+        <li>Download the latest APK from the <a href="javascript:void(0)" onclick="alert('lol, not yet')">releases page</a>.</li>
+        <li>Make sure you have ADB installed on your computer. <a href="https://www.xda-developers.com/install-adb-windows-macos-linux/#how-to-set-up-adb-on-your-computer" noopener target="_blank">This article from XDA</a> should get you on the right track.</li>
+        <li>Connect your Glass to your computer using a USB cable.</li>
+        <li>Open a terminal and run <code>adb install path/to/glasstodon.apk</code>.</li>
+        <li>Once the installation is complete, you should see the app in your Glass menu. Open it and follow the login instructions.</li>
+      </ol>
+    </div>
+    <div class="mui-panel">
+      <form class="mui-form" id="form">
+        <h2>Logging in</h2>
+        <p>Enter the domain of your Mastodon instance (e.g. <code>mastodon.social</code>).</p >
+        <div class="mui-textfield">
+          <input type="url" name="instance" placeholder="https://mastodon.social">
+          <label>Instance URL</label>
+        </div>
+        <button type="submit" class="mui-btn mui-btn--primary mui-btn--raised">Continue</button>
+      </form>
+    </div>
+  </div>
+</body>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const instance = localStorage.getItem('instance');
+    if (instance) {
+      document.querySelector('input[name="instance"]').value = instance;
+    }
+  });
+
+  document.getElementById('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target).entries());
+    localStorage.setItem('instance', data.instance);
+    // start mastodon auth flow
+    let redirectUri = window.location.protocol + "//" + window.location.host + "/callback.html";
+    const scopes = 'read write follow profile push';
+    const response = await fetch(data.instance + '/api/v1/apps', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        client_name: 'Glasstodon',
+        redirect_uris: `${redirectUri}`,
+        scopes: scopes,
+        website: window.location.origin
+      })
     });
-  </script>
+    const appData = await response.json();
+    const clientId = appData.client_id;
+    const clientSecret = appData.client_secret;
+    redirectUri = `${redirectUri}?client_id=${clientId}&client_secret=${clientSecret}`;
+    console.log(appData);
+    const authUrl = `${data.instance}/oauth/authorize?client_id=${clientId}&scope=${encodeURIComponent(scopes)}&response_type=code&force_login=true&redirect_uri=${encodeURIComponent(redirectUri)}`;
+    window.location.href = authUrl;
+  });
+</script>
+
 </html>
