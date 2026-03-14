@@ -36,8 +36,13 @@ public class MastoAPITest {
                + "Example: MASTODON_INSTANCE=\"https://mastodon.social\" "
                + "MASTODON_TOKEN=\"yourtoken\" ./gradlew test");
         }
-
-        api = new MastoAPI(instance, token);
+        System.out.println("Using instance: " + instance);
+        if (System.getenv("SUPER_UNSAFE_PRINT_WHOLE_TOKEN") != null) {
+            System.out.println("Using token: " + token);
+        } else {
+            System.out.println("Using token: " + token.substring(0, 4) + "..." + token.substring(token.length() - 4));
+        }
+        api = new MastoAPI(instance, token, true);
     }
 
     @Test

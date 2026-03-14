@@ -48,11 +48,11 @@ public class MainActivity extends Activity {
 
     private class FetchAccountTask extends AsyncTask<Void, Void, Account> {
         private IOException error;
-        
+
         @Override
         protected Account doInBackground(Void... voids) {
             try {
-                MastoAPI api = new MastoAPI(storage.getInstanceUrl(), storage.getAccessToken());
+                MastoAPI api = new MastoAPI(storage.getInstanceUrl(), storage.getAccessToken(), false);
                 return api.getMe();
             } catch (IOException e) {
                 // Handle error (e.g. show a message to the user)

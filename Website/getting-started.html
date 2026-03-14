@@ -37,7 +37,7 @@
       const data = Object.fromEntries(new FormData(e.target).entries());
       localStorage.setItem('instance', data.instance);
       // start mastodon auth flow
-      const redirectUri = window.location.protocol + "//" + window.location.host + "/callback.html";
+      let redirectUri = window.location.protocol + "//" + window.location.host + "/callback.html";
       const scopes = 'read write follow profile push';
       const response = await fetch(data.instance + '/api/v1/apps', {
         method: 'POST',
@@ -52,8 +52,11 @@
         })
       });
       const appData = await response.json();
+      const clientId = appData.client_id;
+      const clientSecret = appData.client_secret;
+      redirectUri = `${redirectUri}?client_id=${clientId}&client_secret=${clientSecret}`;
       console.log(appData);
-      const authUrl = `${data.instance}/oauth/authorize?client_id=${appData.client_id}&scope=${encodeURIComponent(scopes)}&response_type=code&force_login=true&redirect_uri=${encodeURIComponent(redirectUri)}`;
+      const authUrl = `${data.instance}/oauth/authorize?client_id=${clientId}&scope=${encodeURIComponent(scopes)}&response_type=code&force_login=true&redirect_uri=${encodeURIComponent(redirectUri)}`;
       window.location.href = authUrl;
     });
   </script>

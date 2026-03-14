@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:ital,wght@0,100..700;1,100..700&display=swap');
+
 /* --- ROBOTO CLASSIC: NORMAL WEIGHTS --- */
 
 /* Thin */
@@ -180,6 +182,10 @@ body {
 
   /* currently a placeholder. lol */
   background-image: url('/assets/img/bg.png');
+}
+
+code, pre {
+  font-family: 'Roboto Mono', monospace;
 }
 
 .mui--text-display4,

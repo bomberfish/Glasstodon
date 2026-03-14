@@ -10,6 +10,8 @@ import ca.bomberfish.glasstodon.model.*;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import ca.bomberfish.glasstodon.BuildConfig;
+
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -22,30 +24,40 @@ public class MastoAPI {
     private final String accessToken;
     private final OkHttpClient httpClient;
     private final Gson gson;
+    private final boolean debug;
 
-    public MastoAPI(String instanceUrl, String accessToken) {
+    public MastoAPI(String instanceUrl, String accessToken, boolean debug) {
         this.instanceUrl = instanceUrl;
         this.accessToken = accessToken;
         this.httpClient = new OkHttpClient();
         this.gson = new Gson();
+        this.debug = debug;
     }
 
     // ---- Generic request helpers ----
 
     private <T> T get(String endpoint, Type type) throws IOException {
         Request request = new Request.Builder()
-                .url(instanceUrl + endpoint)
+                .url(instanceUrl + "/api" + endpoint)
                 .header("Authorization", "Bearer " + accessToken)
                 .build();
         Response response = httpClient.newCall(request).execute();
         try {
-            if (!response.isSuccessful()) {
-                throw new IOException("API error: " + response.code() + " " + response.message());
-            }
+            
             ResponseBody body = response.body();
+            if (!response.isSuccessful()) {
+                throw new IOException("API error: " + response.code() + " " + response.message() + "\n" + (body != null ? body.string() : "No response body"));
+            }
             if (body == null) {
                 throw new IOException("Empty response body");
             }
+            if (debug) {
+                // Log the raw JSON response for easier debugging of parsing issues
+                String rawJson = body.string();
+                System.out.println("Raw JSON response for " + endpoint + ": " + rawJson);
+                return gson.fromJson(rawJson, type);
+            }
+
             return gson.fromJson(body.charStream(), type);
         } finally {
             response.close();
@@ -137,57 +149,57 @@ public class MastoAPI {
     // ---- Accounts ----
 
     public Account getMe() throws IOException {
-        return get("/api/v1/accounts/verify_credentials", Account.class);
+        return get("/v1/accounts/verify_credentials", Account.class);
     }
 
     public Account getAccount(String id) throws IOException {
-        return get("/api/v1/accounts/" + id, Account.class);
+        return get("/v1/accounts/" + id, Account.class);
     }
 
     // ---- Single status + context ----
 
     /** Fetch a single status by ID. */
     public Status getStatus(String id) throws IOException {
-        return get("/api/v1/statuses/" + id, Status.class);
+        return get("/v1/statuses/" + id, Status.class);
     }
 
     /** Fetch the thread context (ancestors + descendants) for a status. */
     public StatusContext getStatusContext(String id) throws IOException {
-        return get("/api/v1/statuses/" + id + "/context", StatusContext.class);
+        return get("/v1/statuses/" + id + "/context", StatusContext.class);
     }
 
     // ---- Status actions ----
 
     public Status favourite(String statusId) throws IOException {
-        return post("/api/v1/statuses/" + statusId + "/favourite", Status.class);
+        return post("/v1/statuses/" + statusId + "/favourite", Status.class);
     }
 
     public Status unfavourite(String statusId) throws IOException {
-        return post("/api/v1/statuses/" + statusId + "/unfavourite", Status.class);
+        return post("/v1/statuses/" + statusId + "/unfavourite", Status.class);
     }
 
     public Status boost(String statusId) throws IOException {
-        return post("/api/v1/statuses/" + statusId + "/reblog", Status.class);
+        return post("/v1/statuses/" + statusId + "/reblog", Status.class);
     }
 
     public Status unboost(String statusId) throws IOException {
-        return post("/api/v1/statuses/" + statusId + "/unreblog", Status.class);
+        return post("/v1/statuses/" + statusId + "/unreblog", Status.class);
     }
 
     public Status bookmark(String statusId) throws IOException {
-        return post("/api/v1/statuses/" + statusId + "/bookmark", Status.class);
+        return post("/v1/statuses/" + statusId + "/bookmark", Status.class);
     }
 
     public Status unbookmark(String statusId) throws IOException {
-        return post("/api/v1/statuses/" + statusId + "/unbookmark", Status.class);
+        return post("/v1/statuses/" + statusId + "/unbookmark", Status.class);
     }
 
     public Status pin(String statusId) throws IOException {
-        return post("/api/v1/statuses/" + statusId + "/pin", Status.class);
+        return post("/v1/statuses/" + statusId + "/pin", Status.class);
     }
 
     public Status unpin(String statusId) throws IOException {
-        return post("/api/v1/statuses/" + statusId + "/unpin", Status.class);
+        return post("/v1/statuses/" + statusId + "/unpin", Status.class);
     }
 
     // ---- Compose / delete statuses ----
@@ -218,12 +230,12 @@ public class MastoAPI {
         if (spoilerText != null) {
             form.add("spoiler_text", spoilerText);
         }
-        return post("/api/v1/statuses", form.build(), Status.class);
+        return post("/v1/statuses", form.build(), Status.class);
     }
 
     /** Delete one of the user's own statuses. */
     public void deleteStatus(String statusId) throws IOException {
-        delete("/api/v1/statuses/" + statusId);
+        delete("/v1/statuses/" + statusId);
     }
 
     // ---- Polls ----
@@ -234,17 +246,17 @@ public class MastoAPI {
         for (Integer choice : choices) {
             form.add("choices[]", String.valueOf(choice));
         }
-        return post("/api/v1/polls/" + pollId + "/votes", form.build(), Poll.class);
+        return post("/v1/polls/" + pollId + "/votes", form.build(), Poll.class);
     }
 
     // ---- Notifications ----
 
     public ArrayList<Notification> getNotifications() throws IOException {
-        return get("/api/v1/notifications", new TypeToken<ArrayList<Notification>>(){}.getType());
+        return get("/v1/notifications", new TypeToken<ArrayList<Notification>>(){}.getType());
     }
 
     /** Dismiss a single notification. */
     public void dismissNotification(String notificationId) throws IOException {
-        post("/api/v1/notifications/" + notificationId + "/dismiss");
+        post("/v1/notifications/" + notificationId + "/dismiss");
     }
 }

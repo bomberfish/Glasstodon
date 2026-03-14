@@ -6,13 +6,13 @@ public enum TimelineType {
     public String getEndpoint() {
         switch (this) {
             case HOME:
-                return "/api/v1/timelines/following";
+                return "/v1/timelines/home";
             case FEDERATED:
-                return "/api/v1/timelines/public?local=false";
+                return "/v1/timelines/public?remote=true";
             case LOCAL:
-                return "/api/v1/timelines/public?local=true";
+                return "/v1/timelines/public?local=true";
             case BOOKMARKS:
-                return "/api/v1/bookmarks";
+                return "/v1/bookmarks";
             default:
                 throw new IllegalArgumentException("Unknown timeline: " + this);
         }

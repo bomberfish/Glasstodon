@@ -1,52 +1,92 @@
 <!doctype html>
 <html>
-  <head>
-    <meta charset="utf-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <link
-      href="//cdn.muicss.com/mui-0.10.3/css/mui.min.css"
-      rel="stylesheet"
-      type="text/css"
-    />
-    <script src="//cdn.muicss.com/mui-0.10.3/js/mui.min.js"></script>
-    <script src="/qrcode.min.js"></script>
-    <link rel="stylesheet" href="style.css" />
-    <link
-      href="https://fonts.googleapis.com/icon?family=Material+Icons"
-      rel="stylesheet"
-    />
-    <title>Glasstodon - OAuth Callback</title>
-  </head>
-  <body>
-    <div class="mui-container">
-      <div class="mui-panel">
-        <h1 id="title">OAuth Callback</h1>
-        <p id="status">Hang on, generating QR code...</p>
-        <div id="qrcode" title="click to reveal token" style="cursor: pointer;" onclick="alert(code)"></div>
-      </div>
-    </div>
-  </body>
-  <script defer>
-    const urlParams = new URLSearchParams(window.location.search);
-    const code = urlParams.get("code");
-    const instance = localStorage.getItem("instance");
-    if (code && instance) {
-      const qr = new QRCode(document.getElementById("qrcode"), {
-        text: JSON.stringify({ 
-          instance: instance,
-          token: code,
-        }),
-        width: 256,
-        height: 256,
-      });
 
-      document.getElementById("status").textContent =
-        "Scan this QR code with Glass to complete the login process.";
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="//cdn.muicss.com/mui-0.10.3/css/mui.min.css" rel="stylesheet" type="text/css" />
+  <script src="//cdn.muicss.com/mui-0.10.3/js/mui.min.js"></script>
+  <script src="/qrcode.min.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <title>Glasstodon - OAuth Callback</title>
+</head>
+
+<body>
+  <div class="mui-container">
+    <div class="mui-panel">
+      <h1 id="title">OAuth Callback</h1>
+      <p id="status">Hang on, generating QR code...</p>
+      <div id="qrcode" title="click to reveal token" style="cursor: pointer;" onclick="alert(window.accessToken)"></div>
+    </div>
+  </div>
+</body>
+<script defer>
+  const urlParams = new URLSearchParams(window.location.search);
+  const code = urlParams.get("code");
+  const clientId = urlParams.get("client_id");
+  const clientSecret = urlParams.get("client_secret");
+  const instance = localStorage.getItem("instance");
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    if (code && instance) {
+      try {
+        const res = await fetch(instance + "/oauth/token", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            client_id: clientId,
+            client_secret: clientSecret,
+            grant_type: "authorization_code",
+            code: code,
+            redirect_uri: window.location.protocol + "//" + window.location.host + "/callback.html" + `?client_id=${clientId}&client_secret=${clientSecret}`,
+          }),
+        });
+
+        let tokenData;
+        try {
+          tokenData = await res.json();
+        } catch (jsonErr) {
+          throw new Error("Failed to parse response from Mastodon API.");
+        }
+
+        if (!res.ok || !tokenData.access_token) {
+          let errorMsg = "Error: Failed to obtain access token.";
+          if (tokenData && tokenData.error) {
+            errorMsg += `\n<code>${tokenData.error}: ${tokenData.error_description || ''}</code>`;
+          }
+          document.getElementById("title").textContent = "Whoops!";
+          document.getElementById("status").innerHTML = `${errorMsg}<br><a href='/getting-started.html'>Go back to login</a>`;
+          return;
+        }
+
+        window.accessToken = tokenData.access_token;
+
+        const qr = new QRCode(document.getElementById("qrcode"), {
+          text: JSON.stringify({
+            instance: instance,
+            token: window.accessToken,
+          }),
+          width: 256,
+          height: 256,
+        });
+
+        document.getElementById("status").textContent =
+          "Scan this QR code with Glass to complete the login process.";
+      } catch (err) {
+        document.getElementById("title").textContent = "Whoops!";
+        document.getElementById("status").innerHTML =
+          `Error: <code>${err.message || err}</code><br><a href='/getting-started.html'>Go back to login</a>`;
+      }
     } else {
       document.getElementById("title").textContent = "Whoops!";
       document.getElementById("status").innerHTML =
         'Error: Missing code or instance. Please try starting the login process again. <a href="/getting-started.html">Go back to login</a>';
     }
-  </script>
+  });
+</script>
+
 </html>
