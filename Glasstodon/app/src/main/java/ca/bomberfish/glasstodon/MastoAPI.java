@@ -156,6 +156,35 @@ public class MastoAPI {
         return get("/v1/accounts/" + id, Account.class);
     }
 
+    public ArrayList<Status> getAccountStatuses(String accountId, AccountTimelineType timelineType) throws IOException {
+        String endpoint = timelineType.getEndpoint(accountId);
+        return get(endpoint, new TypeToken<ArrayList<Status>>(){}.getType());
+    }
+
+    public ArrayList<Account> getFollowers(String accountId) throws IOException {
+        return get("/v1/accounts/" + accountId + "/followers", new TypeToken<ArrayList<Account>>(){}.getType());
+    }
+
+    public ArrayList<Account> getFollowing(String accountId) throws IOException {
+        return get("/v1/accounts/" + accountId + "/following", new TypeToken<ArrayList<Account>>(){}.getType());
+    }
+
+    public void follow(String accountId) throws IOException {
+        post("/v1/accounts/" + accountId + "/follow");
+    }
+
+    public void unfollow(String accountId) throws IOException {
+        post("/v1/accounts/" + accountId + "/unfollow");
+    }
+
+    public void block(String accountId) throws IOException {
+        post("/v1/accounts/" + accountId + "/block");
+    }
+
+    public void unblock(String accountId) throws IOException {
+        post("/v1/accounts/" + accountId + "/unblock");
+    }
+
     // ---- Single status + context ----
 
     /** Fetch a single status by ID. */
