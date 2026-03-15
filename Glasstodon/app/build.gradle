@@ -3,6 +3,7 @@ apply plugin: 'com.android.application'
 repositories {
     google()
     mavenCentral()
+    maven { url 'https://jitpack.io' }
     jcenter()
     flatDir {
         dirs 'prebuilt-libs'
@@ -10,11 +11,12 @@ repositories {
 }
 
 android {
-    compileSdkVersion "Google Inc.:Glass Development Kit Preview:19"
+//    compileSdkVersion "Google Inc.:Glass Development Kit Preview:19"
+    compileSdkVersion 36
     defaultConfig {
         applicationId "ca.bomberfish.glasstodon"
         minSdkVersion 19
-        targetSdkVersion 25
+        targetSdkVersion 36
         versionCode 1
         versionName "1.0"
     }
@@ -25,8 +27,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_7
-        targetCompatibility JavaVersion.VERSION_1_7
+        sourceCompatibility JavaVersion.VERSION_11
+        targetCompatibility JavaVersion.VERSION_11
     }
     lintOptions {
         abortOnError false
@@ -39,5 +41,6 @@ dependencies {
     implementation 'com.google.zxing:core:3.3.3'
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
     implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'com.github.CatotheCat11:OpenPrism:1.2.0'
     testImplementation 'junit:junit:4.12'
 }

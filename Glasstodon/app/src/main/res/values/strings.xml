@@ -1,7 +1,11 @@
 <resources>
     <string name="app_name">Glasstodon</string>
-    <string name="title_activity_main">Hello World Immersion</string>
+    <string name="title_activity_main">Glasstodon</string>
+    <string name="title_activity_scan">Log in to Mastodon</string>
+    <string name="scan_hint">Scan your login QR code</string>
     <string name="hello_world">Hello world!</string>
     <string name="history_empty">Empty</string>
     <string name="history_empty_detail">No scan history</string>
+    <string name="post_update_prompt">What\'s up?</string>
+    <string name="glass_custom_open">show my feed</string>
 </resources>

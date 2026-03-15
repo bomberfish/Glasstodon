@@ -19,8 +19,8 @@ package com.google.zxing.share;
 import android.app.ListActivity;
 import android.content.Intent;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.Bundle;
-import android.provider.Browser;
 import android.util.Log;
 import android.view.View;
 import android.widget.ListView;
@@ -34,25 +34,35 @@ import android.widget.ListView;
 public final class BookmarkPickerActivity extends ListActivity {
 
   private static final String TAG = BookmarkPickerActivity.class.getSimpleName();
+  private static final Uri BOOKMARKS_URI = Uri.parse("content://browser/bookmarks");
+  private static final String BOOKMARK_TITLE = "title";
+  private static final String BOOKMARK_URL = "url";
+  private static final String BOOKMARK_IS_BOOKMARK = "bookmark";
 
   private static final String[] BOOKMARK_PROJECTION = {
-      Browser.BookmarkColumns.TITLE,
-      Browser.BookmarkColumns.URL
+      BOOKMARK_TITLE,
+      BOOKMARK_URL
   };
 
   static final int TITLE_COLUMN = 0;
   static final int URL_COLUMN = 1;
 
   private static final String BOOKMARK_SELECTION = 
-      Browser.BookmarkColumns.BOOKMARK + " = 1 AND " + Browser.BookmarkColumns.URL + " IS NOT NULL";
+      BOOKMARK_IS_BOOKMARK + " = 1 AND " + BOOKMARK_URL + " IS NOT NULL";
 
   private Cursor cursor;
 
   @Override
   protected void onCreate(Bundle icicle) {
     super.onCreate(icicle);
-    cursor = getContentResolver().query(Browser.BOOKMARKS_URI, BOOKMARK_PROJECTION,
-        BOOKMARK_SELECTION, null, null);
+    try {
+      cursor = getContentResolver().query(BOOKMARKS_URI, BOOKMARK_PROJECTION,
+          BOOKMARK_SELECTION, null, null);
+    } catch (SecurityException e) {
+      Log.w(TAG, "Insufficient permissions to query bookmarks", e);
+      cursor = null;
+    }
+
     if (cursor == null) {
       Log.w(TAG, "No cursor returned for bookmark query");
       finish();
@@ -74,8 +84,8 @@ public final class BookmarkPickerActivity extends ListActivity {
     if (!cursor.isClosed() && cursor.moveToPosition(position)) {
       Intent intent = new Intent();
       intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_WHEN_TASK_RESET);
-      intent.putExtra(Browser.BookmarkColumns.TITLE, cursor.getString(TITLE_COLUMN));
-      intent.putExtra(Browser.BookmarkColumns.URL, cursor.getString(URL_COLUMN));
+      intent.putExtra(BOOKMARK_TITLE, cursor.getString(TITLE_COLUMN));
+      intent.putExtra(BOOKMARK_URL, cursor.getString(URL_COLUMN));
       setResult(RESULT_OK, intent);
     } else {
       setResult(RESULT_CANCELED);
