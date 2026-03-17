@@ -5,17 +5,32 @@ import com.google.android.glass.widget.CardBuilder;
 import com.google.android.glass.widget.CardScrollAdapter;
 import com.google.android.glass.widget.CardScrollView;
 import ca.bomberfish.glasstodon.model.Account;
+import ca.bomberfish.glasstodon.model.Status;
+import ca.bomberfish.glasstodon.model.TimelineType;
 
 import android.app.Activity;
 import android.content.Context;
 import android.media.AudioManager;
 import android.os.Bundle;
 import android.os.AsyncTask;
+import android.text.Html;
+import android.text.Spanned;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import java.io.IOException;
+import java.nio.charset.Charset;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+
+import android.graphics.drawable.Drawable;
+import android.text.SpannableStringBuilder;
+import android.text.Spannable;
+import android.text.style.ImageSpan;
+
+import org.ocpsoft.prettytime.PrettyTime;
 
 /**
  * Displays the timeline as a scrollable list of cards.
@@ -28,16 +43,17 @@ public class TimelineActivity extends Activity {
     private View mView;
 
     AppStorage storage;
-    Account account;
+    ArrayList<Status> statuses = new ArrayList<>();
 
-    private class FetchAccountTask extends AsyncTask<Void, Void, Account> {
+    PrettyTime p = new PrettyTime();
+    private class FetchTimelineTask extends AsyncTask<Void, Void, ArrayList<Status>> {
         private IOException error;
 
         @Override
-        protected Account doInBackground(Void... voids) {
+        protected ArrayList<ca.bomberfish.glasstodon.model.Status> doInBackground(Void... voids) {
             try {
                 MastoAPI api = new MastoAPI(storage.getInstanceUrl(), storage.getAccessToken(), false, TimelineActivity.this);
-                return api.getMe();
+                return api.getTimeline(TimelineType.HOME); // TODO: infinite scrolling
             } catch (IOException e) {
                 Log.e("TimelineActivity", "Failed to fetch account info: " + e.getMessage());
                 error = e;
@@ -46,10 +62,10 @@ public class TimelineActivity extends Activity {
         }
 
         @Override
-        protected void onPostExecute(Account result) {
+        protected void onPostExecute(ArrayList<ca.bomberfish.glasstodon.model.Status> result) {
             if (result != null) {
-                account = result;
-                mView = buildView();
+                statuses = result;
+//                mView = buildView();
             } else {
                 Log.e("TimelineActivity", "Failed to fetch account info: " + error.getMessage());
                 mView = new CardBuilder(TimelineActivity.this, CardBuilder.Layout.TEXT)
@@ -76,25 +92,28 @@ public class TimelineActivity extends Activity {
         mCardScroller.setAdapter(new CardScrollAdapter() {
             @Override
             public int getCount() {
-                return 1;
+                return Math.max(1, statuses.size());
             }
 
             @Override
             public Object getItem(int position) {
-                return mView;
+                if (statuses.isEmpty()) return mView;
+                return statuses.get(position);
             }
 
             @Override
             public View getView(int position, View convertView, ViewGroup parent) {
-                return mView;
+                if (statuses.isEmpty()) return mView;
+                return buildStatusCard(statuses.get(position));
             }
 
             @Override
             public int getPosition(Object item) {
-                if (mView.equals(item)) {
-                    return 0;
+                if (statuses.isEmpty()) {
+                    return item == mView ? 0 : AdapterView.INVALID_POSITION;
                 }
-                return AdapterView.INVALID_POSITION;
+                int i = statuses.indexOf(item);
+                return i >= 0 ? i : AdapterView.INVALID_POSITION;
             }
         });
         mCardScroller.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -107,7 +126,7 @@ public class TimelineActivity extends Activity {
         setContentView(mCardScroller);
         mCardScroller.activate();
 
-        new FetchAccountTask().execute();
+        new FetchTimelineTask().execute();
     }
 
     @Override
@@ -126,13 +145,85 @@ public class TimelineActivity extends Activity {
         super.onPause();
     }
 
-    private View buildView() {
-        CardBuilder card = new CardBuilder(this, CardBuilder.Layout.TEXT);
+//    private View buildView() {
+//        CardBuilder card = new CardBuilder(this, CardBuilder.Layout.TEXT);
+//
+//        String displayName = account.getDisplayNameOrUsername();
+//        String info = displayName + "\n@" + account.acct
+//            + "\n\n" + account.followersCount + " followers · " + account.followingCount + " following";
+//        card.setText(info);
+//
+//        return card.getView();
+//    }
 
-        String displayName = account.getDisplayNameOrUsername();
-        String info = displayName + "\n@" + account.acct
-            + "\n\n" + account.followersCount + " followers · " + account.followingCount + " following";
-        card.setText(info);
+    private static CharSequence trimSpanned(Spanned spanned) {
+        int start = 0;
+        int end = spanned.length();
+        while (start < end && Character.isWhitespace(spanned.charAt(start))) {
+            start++;
+        }
+        while (end > start && Character.isWhitespace(spanned.charAt(end - 1))) {
+            end--;
+        }
+        return spanned.subSequence(start, end);
+    }
+
+    private CharSequence buildFootnote(Status status) {
+        SpannableStringBuilder sb = new SpannableStringBuilder();
+        // Helper: append an icon + count
+        appendIconCount(sb, android.R.drawable.btn_star_big_on, status.favouritesCount);
+        sb.append("  ");
+        appendIconCount(sb, android.R.drawable.ic_menu_share, status.reblogsCount);
+        sb.append("  ");
+        appendIconCount(sb, android.R.drawable.stat_notify_chat, status.repliesCount);
+        return sb;
+    }
+    private void appendIconCount(SpannableStringBuilder sb, int drawableRes, int count) {
+        Drawable icon = getResources().getDrawable(drawableRes);
+        // Scale to match text height — roughly 24px on Glass
+        int size = 24;
+        icon.setBounds(0, 0, size, size);
+        int start = sb.length();
+        sb.append(" "); // placeholder character to replace with the icon
+        sb.setSpan(new ImageSpan(icon, ImageSpan.ALIGN_BASELINE),
+                start, start + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
+        sb.append(" ");
+        sb.append(String.valueOf(count));
+    }
+
+    private View buildStatusCard(Status status) {
+        Status actionable = status.getActionableStatus();
+
+        SpannableStringBuilder sb = new SpannableStringBuilder();
+
+//        if (status.isReblog()) {
+//            sb.append(status.account.getDisplayNameOrUsername());
+//            sb.append(" boosted\n");
+//        }
+
+//        sb.append(actionable.account.getDisplayNameOrUsername());
+//        sb.append("\n");
+
+        if (actionable.hasSpoiler()) {
+            sb.append("CW: ");
+            sb.append(actionable.spoilerText);
+        } else {
+            CharSequence content = trimSpanned(Html.fromHtml(actionable.content));
+            sb.append(content);
+        }
+
+
+        CardBuilder card;
+        if (!actionable.hasSpoiler() && actionable.mediaAttachments != null && !actionable.mediaAttachments.isEmpty()) {
+            card = new CardBuilder(this, CardBuilder.Layout.CAPTION)
+                    .addImage(R.drawable.placeholder);
+        } else {
+            card = new CardBuilder(this, CardBuilder.Layout.TEXT);
+        }
+
+        card.setText(sb);
+        card.setFootnote(buildFootnote(actionable));
+        card.setTimestamp(actionable.account.getDisplayNameOrUsername() + " · " + p.format(Instant.parse(actionable.createdAt)));
 
         return card.getView();
     }

@@ -104,6 +104,7 @@ public class MastoAPI {
     // ---- Generic request helpers ----
 
     private <T> T get(String endpoint, Type type) throws IOException {
+        Log.d("MastoAPI", "Fetching " + endpoint);
         Request request = new Request.Builder()
                 .url(instanceUrl + "/api" + endpoint)
                 .header("Authorization", "Bearer " + accessToken)
@@ -120,7 +121,7 @@ public class MastoAPI {
             if (debug) {
                 // Log the raw JSON response for easier debugging of parsing issues
                 String rawJson = body.string();
-                System.out.println("Raw JSON response for " + endpoint + ": " + rawJson);
+                Log.d("MastoAPI", "Raw JSON response for " + endpoint + ": " + rawJson);
                 return gson.fromJson(rawJson, type);
             }
 
