@@ -238,22 +238,20 @@ public class TimelineActivity extends Activity {
 
     private CharSequence buildFootnote(Status status) {
         SpannableStringBuilder sb = new SpannableStringBuilder();
-        // Helper: append an icon + count
         appendIconCount(sb, android.R.drawable.btn_star_big_on, status.favouritesCount);
-        sb.append("  ");
+        sb.append("    ");
         appendIconCount(sb, android.R.drawable.ic_menu_share, status.reblogsCount);
-        sb.append("  ");
+        sb.append("    ");
         appendIconCount(sb, android.R.drawable.stat_notify_chat, status.repliesCount);
         return sb;
     }
     private void appendIconCount(SpannableStringBuilder sb, int drawableRes, int count) {
         Drawable icon = getResources().getDrawable(drawableRes);
-        // Scale to match text height — roughly 24px on Glass
-        int size = 24;
+        int size = 48;
         icon.setBounds(0, 0, size, size);
         int start = sb.length();
         sb.append(" "); // placeholder character to replace with the icon
-        sb.setSpan(new ImageSpan(icon, ImageSpan.ALIGN_BASELINE),
+        sb.setSpan(new ImageSpan(icon, ImageSpan.ALIGN_CENTER),
                 start, start + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE);
         sb.append(" ");
         sb.append(String.valueOf(count));
@@ -282,17 +280,42 @@ public class TimelineActivity extends Activity {
 
 
         CardBuilder card;
-        if (!actionable.hasSpoiler() && actionable.mediaAttachments != null && !actionable.mediaAttachments.isEmpty()) {
+        boolean hasMedia = !actionable.hasSpoiler() && actionable.mediaAttachments != null && !actionable.mediaAttachments.isEmpty();
+        if (hasMedia) {
             card = new CardBuilder(this, CardBuilder.Layout.CAPTION)
                     .addImage(R.drawable.placeholder);
         } else {
-            card = new CardBuilder(this, CardBuilder.Layout.TEXT);
+            card = new CardBuilder(this, CardBuilder.Layout.AUTHOR);
         }
 
         card.setText(sb);
+        card.setIcon(R.drawable.ic_glass_logo);
         card.setFootnote(buildFootnote(actionable));
-        card.setTimestamp(actionable.account.getDisplayNameOrUsername() + " · " + p.format(Instant.parse(actionable.createdAt)));
+        card.setTimestamp(p.format(Instant.parse(actionable.createdAt)) + "  ");
+        card.setHeading(actionable.account.getDisplayNameOrUsername());
+        card.setSubheading(actionable.account.acct);
+        if (hasMedia) {
+            if (actionable.content.isEmpty()) {
+                card.setText(actionable.account.getDisplayNameOrUsername() + " posted:");
+            } else {
+                card.setTimestamp(actionable.account.getDisplayNameOrUsername() + " · " + p.format(Instant.parse(actionable.createdAt)) + "  ");
+            }
+        }
+        card.setAttributionIcon(getIconForPrivacy(actionable.visibility));
 
         return card.getView();
+    }
+
+    private int getIconForPrivacy(String privacy) {
+        switch (privacy) {
+            case "unlisted":
+                return android.R.drawable.ic_lock_silent_mode;
+            case "private":
+                return android.R.drawable.ic_lock_lock;
+            case "direct":
+                return android.R.drawable.ic_dialog_email;
+            default: // includes "public"
+                return android.R.drawable.stat_notify_chat;
+        }
     }
 }
