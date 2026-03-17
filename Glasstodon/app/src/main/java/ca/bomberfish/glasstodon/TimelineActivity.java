@@ -45,15 +45,21 @@ public class TimelineActivity extends Activity {
     AppStorage storage;
     ArrayList<Status> statuses = new ArrayList<>();
 
+    private MastoAPI api;
+
     PrettyTime p = new PrettyTime();
     private class FetchTimelineTask extends AsyncTask<Void, Void, ArrayList<Status>> {
         private IOException error;
+        private final String maxId;
+
+        public FetchTimelineTask(String maxId) {
+            this.maxId = maxId;
+        }
 
         @Override
         protected ArrayList<ca.bomberfish.glasstodon.model.Status> doInBackground(Void... voids) {
             try {
-                MastoAPI api = new MastoAPI(storage.getInstanceUrl(), storage.getAccessToken(), false, TimelineActivity.this);
-                return api.getTimeline(TimelineType.HOME); // TODO: infinite scrolling
+                return api.getTimeline(TimelineType.HOME, 30, this.maxId);
             } catch (IOException e) {
                 Log.e("TimelineActivity", "Failed to fetch account info: " + e.getMessage());
                 error = e;
@@ -64,8 +70,7 @@ public class TimelineActivity extends Activity {
         @Override
         protected void onPostExecute(ArrayList<ca.bomberfish.glasstodon.model.Status> result) {
             if (result != null) {
-                statuses = result;
-//                mView = buildView();
+                statuses.addAll(result);
             } else {
                 Log.e("TimelineActivity", "Failed to fetch account info: " + error.getMessage());
                 mView = new CardBuilder(TimelineActivity.this, CardBuilder.Layout.TEXT)
@@ -80,6 +85,7 @@ public class TimelineActivity extends Activity {
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
         storage = new AppStorage(this);
+        api = new MastoAPI(storage.getInstanceUrl(), storage.getAccessToken(), false, this);
         setupView();
     }
 
@@ -123,10 +129,25 @@ public class TimelineActivity extends Activity {
                 am.playSoundEffect(Sounds.DISALLOWED);
             }
         });
+        mCardScroller.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+                                                    @Override
+                                                    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                                                        Log.d("TimelineActivity", "Selected item " + position);
+                                                        if (!statuses.isEmpty() && position >= statuses.size() - 3) {
+                                                            Log.d("TimelineActivity", "Fetching next page of statuses");
+                                                            new FetchTimelineTask(statuses.get(statuses.size() - 1).id).execute();
+                                                        }
+                                                    }
+
+                                                    @Override
+                                                    public void onNothingSelected(AdapterView<?> parent) {
+
+                                                    }
+                                                });
         setContentView(mCardScroller);
         mCardScroller.activate();
 
-        new FetchTimelineTask().execute();
+        new FetchTimelineTask(null).execute();
     }
 
     @Override

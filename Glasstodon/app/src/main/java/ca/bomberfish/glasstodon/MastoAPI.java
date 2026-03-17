@@ -208,21 +208,25 @@ public class MastoAPI {
 
     // ---- Timeline ----
 
-    public ArrayList<Status> getTimeline(TimelineType type, int limit, String sinceId) throws IOException {
-        String endpoint = type.getEndpoint() + "?limit=" + limit + (sinceId != null ? "&since_id=" + sinceId : "");
+    public ArrayList<Status> getTimeline(TimelineType type, int limit, String maxId, String sinceId) throws IOException {
+        String endpoint = type.getEndpoint() + "?limit=" + limit + (sinceId != null ? "&since_id=" + sinceId : "") + (maxId != null ? "&max_id=" + maxId : "");
         return get(endpoint, new TypeToken<ArrayList<Status>>(){}.getType());
     }
 
-    public ArrayList<Status> getTimeline(TimelineType type, int limit) throws IOException {
-        return getTimeline(type, limit, null);
+    public ArrayList<Status> getTimeline(TimelineType type, int limit, String maxId) throws IOException {
+        return getTimeline(type, limit, maxId, null);
     }
 
-    public ArrayList<Status> getTimeline(TimelineType type, String sinceId) throws IOException {
-        return getTimeline(type, 20, sinceId);
+    public ArrayList<Status> getTimeline(TimelineType type, int limit) throws IOException {
+        return getTimeline(type, limit, null, null);
+    }
+
+    public ArrayList<Status> getTimeline(TimelineType type, String maxId) throws IOException {
+        return getTimeline(type, 20, maxId, null);
     }
 
     public ArrayList<Status> getTimeline(TimelineType type) throws IOException {
-        return getTimeline(type, 20, null);
+        return getTimeline(type, 20, null, null);
     }
 
 
