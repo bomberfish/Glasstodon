@@ -52,7 +52,7 @@ public class MainActivity extends Activity {
         @Override
         protected Account doInBackground(Void... voids) {
             try {
-                MastoAPI api = new MastoAPI(storage.getInstanceUrl(), storage.getAccessToken(), false);
+                MastoAPI api = new MastoAPI(storage.getInstanceUrl(), storage.getAccessToken(), false, MainActivity.this);
                 return api.getMe();
             } catch (IOException e) {
                 // Handle error (e.g. show a message to the user)

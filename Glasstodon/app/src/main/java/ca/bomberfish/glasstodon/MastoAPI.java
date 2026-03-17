@@ -1,10 +1,16 @@
 package ca.bomberfish.glasstodon;
 
+import android.content.Context;
 import android.util.Log;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Type;
 import java.security.KeyStore;
+import java.security.cert.Certificate;
+import java.security.cert.CertificateException;
+import java.security.cert.CertificateFactory;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -14,6 +20,8 @@ import ca.bomberfish.glasstodon.model.*;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.TrustManagerFactory;
 import javax.net.ssl.X509TrustManager;
@@ -31,14 +39,63 @@ import okhttp3.ResponseBody;
 public class MastoAPI {
     private final String instanceUrl;
     private final String accessToken;
-    private final OkHttpClient httpClient;
+    public final OkHttpClient httpClient;
     private final Gson gson;
     private final boolean debug;
 
-    public MastoAPI(String instanceUrl, String accessToken, boolean debug) {
+    public MastoAPI(String instanceUrl, String accessToken, boolean debug, Context context) {
+        OkHttpClient client = new OkHttpClient();
+
+        try {
+            KeyStore store = KeyStore.getInstance(KeyStore.getDefaultType());
+            store.load(null, null);
+            int[] certResources = new int[]{
+                    R.raw.isrgrootx1,               // ISRG Root X1
+                    R.raw.isrgrootx2,               // ISRG Root X2
+                    R.raw.isrgrootx2_crosssigned,   // ISRG Root X2 (cross-signed by ISRG Root X1)
+                    R.raw.isrgrootx2_x1,            // ISRG Root X2 (second cross-sign by ISRG Root X1)
+                    R.raw.isrgrootye,               // ISRG Root YE
+                    R.raw.isrgrootye_x2,            // ISRG Root YE (cross-signed by ISRG Root X2)
+                    R.raw.isrgrootyr,               // ISRG Root YR
+                    R.raw.isrgrootyr_x1             // ISRG Root YR (cross-signed by ISRG Root X1)
+            };
+            CertificateFactory x509Factory = CertificateFactory.getInstance("X.509");
+            for (int certResource : certResources) {
+                try {
+                    String alias = context.getResources().getResourceEntryName(certResource);
+                    Log.d("MastoAPI", "Loading \"" + alias + "\" from bundled certificates");
+                    InputStream certStream = context.getResources().openRawResource(certResource);
+                    Certificate cert = x509Factory.generateCertificate(certStream);
+                    store.setCertificateEntry(alias, cert);
+                } catch (Exception e) {
+                    Log.w("MastoAPI", "Failed to load certificate resource: " + e.getMessage(), e);
+                }
+            }
+
+            TrustManagerFactory newTmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            newTmf.init(store);
+            X509TrustManager newManager = CombinedX509TrustManager.managerFromTrustManagerFactory(newTmf);
+
+            TrustManagerFactory systemTmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            systemTmf.init((KeyStore) null);
+            X509TrustManager systemManager = CombinedX509TrustManager.managerFromTrustManagerFactory(systemTmf);
+
+            X509TrustManager customManager = new CombinedX509TrustManager(newManager, systemManager);
+
+            SSLContext sslContext = SSLContext.getInstance("TLS");
+            sslContext.init(null, new TrustManager[] { customManager }, null);
+            SSLSocketFactory sslSocketFactory = sslContext.getSocketFactory();
+
+            client = new OkHttpClient.Builder()
+                    .sslSocketFactory(sslSocketFactory, customManager)
+                    .build();
+        } catch (Exception e) {
+            Log.w("MastoAPI", "Failed to load certificate store: " + e.getMessage(), e);
+        }
+
         this.instanceUrl = instanceUrl;
         this.accessToken = accessToken;
-        this.httpClient = new OkHttpClient();
+        this.httpClient = client;
         this.gson = new Gson();
         this.debug = debug;
     }
