@@ -1,8 +1,12 @@
 package ca.bomberfish.glasstodon;
 
+import android.util.Log;
+
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.security.KeyStore;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import ca.bomberfish.glasstodon.model.*;
@@ -10,8 +14,13 @@ import ca.bomberfish.glasstodon.model.*;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.TrustManagerFactory;
+import javax.net.ssl.X509TrustManager;
+
 import ca.bomberfish.glasstodon.BuildConfig;
 
+import okhttp3.ConnectionSpec;
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -43,7 +52,6 @@ public class MastoAPI {
                 .build();
         Response response = httpClient.newCall(request).execute();
         try {
-            
             ResponseBody body = response.body();
             if (!response.isSuccessful()) {
                 throw new IOException("API error: " + response.code() + " " + response.message() + "\n" + (body != null ? body.string() : "No response body"));

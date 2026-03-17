@@ -38,9 +38,10 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.google.zxing:core:3.3.3'
+    implementation 'com.google.zxing:core:3.5.4'
     implementation 'com.squareup.okhttp3:okhttp:3.12.13'
-    implementation 'com.google.code.gson:gson:2.8.9'
+    implementation 'org.conscrypt:conscrypt-android:2.5.3'
+    implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.github.CatotheCat11:OpenPrism:1.2.0'
     testImplementation 'junit:junit:4.12'
 }
