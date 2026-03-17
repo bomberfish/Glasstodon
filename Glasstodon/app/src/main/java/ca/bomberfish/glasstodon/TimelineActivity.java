@@ -49,22 +49,36 @@ public class TimelineActivity extends Activity {
 
     PrettyTime p = new PrettyTime();
 
-    private boolean isLoading = true;
+
+    AudioManager am;
+
+    private enum LoadDirection { OLDER, NEWER }
+    private boolean isLoadingOlder = false;
+    private boolean isLoadingNewer = false;
+    private static final int MAX_STATUSES = 60;
+    private static final int LOAD_THRESHOLD = 5;
+
     private class FetchTimelineTask extends AsyncTask<Void, Void, ArrayList<Status>> {
         private IOException error;
-        private final String maxId;
+        private final LoadDirection dir;
 
-        public FetchTimelineTask(String maxId) {
-            this.maxId = maxId;
+        public FetchTimelineTask(LoadDirection dir) {
+            this.dir = dir;
         }
 
         @Override
         protected ArrayList<ca.bomberfish.glasstodon.model.Status> doInBackground(Void... voids) {
-            isLoading = true;
+            Log.d("FetchTimelineTask", "Fetching statuses");
             try {
-                return api.getTimeline(TimelineType.HOME, 30, this.maxId);
+                if (statuses.isEmpty()) {
+                    return api.getTimeline(TimelineType.HOME, 30);
+                } else if (dir == LoadDirection.OLDER) {
+                    return api.getTimeline(TimelineType.HOME, 30, statuses.get(statuses.size() - 1).id);
+                } else {
+                    return api.getTimeline(TimelineType.HOME, 30, null, statuses.get(0).id);
+                }
             } catch (IOException e) {
-                Log.e("TimelineActivity", "Failed to fetch account info: " + e.getMessage());
+                Log.e("FetchTimelineTask", "Failed to fetch account info: " + e.getMessage());
                 error = e;
                 return null;
             }
@@ -72,22 +86,57 @@ public class TimelineActivity extends Activity {
 
         @Override
         protected void onPostExecute(ArrayList<ca.bomberfish.glasstodon.model.Status> result) {
-            if (result != null) {
-                statuses.addAll(result);
-            } else {
-                Log.e("TimelineActivity", "Failed to fetch account info: " + error.getMessage());
-                mView = new CardBuilder(TimelineActivity.this, CardBuilder.Layout.TEXT)
-                        .setText("Failed to load account info.\nPlease check your network connection and try again.")
-                        .getView();
+            if (result == null || result.isEmpty()) {
+                isLoadingOlder = false;
+                isLoadingNewer = false;
+                if (result == null) {
+                    mView = new CardBuilder(TimelineActivity.this, CardBuilder.Layout.ALERT)
+                            .setText("Failed to fetch timeline.")
+                            .setIcon(android.R.drawable.stat_notify_error)
+                            .getView();
+                    mCardScroller.getAdapter().notifyDataSetChanged();
+                    am.playSoundEffect(Sounds.ERROR);
+                }
+                return;
             }
-            isLoading = false;
-            mCardScroller.getAdapter().notifyDataSetChanged();
+
+            if (dir == null) {
+                statuses.addAll(result);
+                mCardScroller.getAdapter().notifyDataSetChanged();
+                return;
+            }
+
+            int currentPos = mCardScroller.getSelectedItemPosition();
+            switch (dir) {
+                case OLDER:
+                    statuses.addAll(result);
+                    if (statuses.size() > MAX_STATUSES) {
+                        int excess = statuses.size() - MAX_STATUSES;
+                        statuses.subList(0, excess).clear();
+                        mCardScroller.getAdapter().notifyDataSetChanged();
+                        mCardScroller.setSelection(currentPos - excess);
+                    } else {
+                        mCardScroller.getAdapter().notifyDataSetChanged();
+                    }
+                    isLoadingOlder = false;
+                    break;
+                case NEWER:
+                    statuses.addAll(0, result);
+                    if (statuses.size() > MAX_STATUSES) {
+                        statuses.subList(MAX_STATUSES, statuses.size()).clear();
+                    }
+                    mCardScroller.getAdapter().notifyDataSetChanged();
+                    mCardScroller.setSelection(currentPos + result.size());
+                    isLoadingNewer = false;
+                    break;
+            }
         }
     }
 
     @Override
     protected void onCreate(Bundle bundle) {
         super.onCreate(bundle);
+        am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
         storage = new AppStorage(this);
         api = new MastoAPI(storage.getInstanceUrl(), storage.getAccessToken(), false, this);
         setupView();
@@ -129,7 +178,6 @@ public class TimelineActivity extends Activity {
         mCardScroller.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                AudioManager am = (AudioManager) getSystemService(Context.AUDIO_SERVICE);
                 am.playSoundEffect(Sounds.DISALLOWED);
             }
         });
@@ -137,9 +185,14 @@ public class TimelineActivity extends Activity {
                                                     @Override
                                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                                         Log.d("TimelineActivity", "Selected item " + position);
-                                                        if (!isLoading && !statuses.isEmpty() && position >= statuses.size() - 5) {
-                                                            Log.d("TimelineActivity", "Fetching next page of statuses");
-                                                            new FetchTimelineTask(statuses.get(statuses.size() - 1).id).execute();
+                                                        if (!statuses.isEmpty()) {
+                                                            if (!isLoadingOlder && position >= statuses.size() - LOAD_THRESHOLD) {
+                                                                isLoadingOlder = true;
+                                                                new FetchTimelineTask(LoadDirection.OLDER).execute();
+                                                            } else if (!isLoadingNewer && position > 0 && position <= LOAD_THRESHOLD) {
+                                                                isLoadingNewer = true;
+                                                                new FetchTimelineTask(LoadDirection.NEWER).execute();
+                                                            }
                                                         }
                                                     }
 
@@ -170,16 +223,6 @@ public class TimelineActivity extends Activity {
         super.onPause();
     }
 
-//    private View buildView() {
-//        CardBuilder card = new CardBuilder(this, CardBuilder.Layout.TEXT);
-//
-//        String displayName = account.getDisplayNameOrUsername();
-//        String info = displayName + "\n@" + account.acct
-//            + "\n\n" + account.followersCount + " followers · " + account.followingCount + " following";
-//        card.setText(info);
-//
-//        return card.getView();
-//    }
 
     private static CharSequence trimSpanned(Spanned spanned) {
         int start = 0;
