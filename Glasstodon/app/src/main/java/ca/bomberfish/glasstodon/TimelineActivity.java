@@ -48,6 +48,8 @@ public class TimelineActivity extends Activity {
     private MastoAPI api;
 
     PrettyTime p = new PrettyTime();
+
+    private boolean isLoading = true;
     private class FetchTimelineTask extends AsyncTask<Void, Void, ArrayList<Status>> {
         private IOException error;
         private final String maxId;
@@ -58,6 +60,7 @@ public class TimelineActivity extends Activity {
 
         @Override
         protected ArrayList<ca.bomberfish.glasstodon.model.Status> doInBackground(Void... voids) {
+            isLoading = true;
             try {
                 return api.getTimeline(TimelineType.HOME, 30, this.maxId);
             } catch (IOException e) {
@@ -77,6 +80,7 @@ public class TimelineActivity extends Activity {
                         .setText("Failed to load account info.\nPlease check your network connection and try again.")
                         .getView();
             }
+            isLoading = false;
             mCardScroller.getAdapter().notifyDataSetChanged();
         }
     }
@@ -133,7 +137,7 @@ public class TimelineActivity extends Activity {
                                                     @Override
                                                     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
                                                         Log.d("TimelineActivity", "Selected item " + position);
-                                                        if (!statuses.isEmpty() && position >= statuses.size() - 3) {
+                                                        if (!isLoading && !statuses.isEmpty() && position >= statuses.size() - 5) {
                                                             Log.d("TimelineActivity", "Fetching next page of statuses");
                                                             new FetchTimelineTask(statuses.get(statuses.size() - 1).id).execute();
                                                         }
