@@ -23,13 +23,21 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
+            shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+            multiDexKeepProguard = file('multidex-config.pro')
+        }
+
+        debug {
+            minifyEnabled false
+            shrinkResources false
         }
     }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_11
         targetCompatibility JavaVersion.VERSION_11
+        coreLibraryDesugaringEnabled true
     }
     lintOptions {
         abortOnError false
@@ -45,5 +53,7 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.10.1'
     implementation 'com.github.CatotheCat11:OpenPrism:1.2.0'
     implementation 'org.ocpsoft.prettytime:prettytime:5.0.8.Final'
+    implementation 'androidx.startup:startup-runtime:1.0.0'
+    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:2.1.5'
     testImplementation 'junit:junit:4.12'
 }

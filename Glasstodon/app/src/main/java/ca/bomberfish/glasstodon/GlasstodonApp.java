@@ -2,11 +2,13 @@ package ca.bomberfish.glasstodon;
 import android.app.Application;
 import android.util.Log;
 
+import androidx.multidex.MultiDexApplication;
+
 import org.conscrypt.Conscrypt;
 
 import java.security.KeyStore;
 import java.security.Security;
-public class GlasstodonApp extends Application {
+public class GlasstodonApp extends MultiDexApplication {
     @Override
     public void onCreate() {
         super.onCreate();
