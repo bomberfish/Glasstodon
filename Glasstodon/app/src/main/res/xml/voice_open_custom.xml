@@ -1,5 +1,5 @@
 <!-- For more information about voice trigger, check out: https://developers.google.com/glass/develop/gdk/starting-glassware -->
-<trigger command="SHOW_ME_THE_NEWS">
+<trigger command="@string/glass_custom_open">
     <constraints
         network="true" />
 </trigger>

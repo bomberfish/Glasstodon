@@ -1,5 +1,7 @@
 <!-- For more information about voice trigger, check out: https://developers.google.com/glass/develop/gdk/starting-glassware -->
-<trigger command="SHOW_ME_THE_NEWS">
+<trigger command="@string/glass_custom_post_photo">
     <constraints
+        camera="true"
         network="true" />
+    <input prompt="@string/post_update_prompt" />
 </trigger>

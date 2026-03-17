@@ -5,6 +5,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.security.KeyStore;
 import java.security.cert.Certificate;
@@ -206,10 +207,23 @@ public class MastoAPI {
 
     // ---- Timeline ----
 
-    public ArrayList<Status> getTimeline(TimelineType type) throws IOException {
-        String endpoint = type.getEndpoint();
+    public ArrayList<Status> getTimeline(TimelineType type, int limit, String sinceId) throws IOException {
+        String endpoint = type.getEndpoint() + "?limit=" + limit + (sinceId != null ? "&since_id=" + sinceId : "");
         return get(endpoint, new TypeToken<ArrayList<Status>>(){}.getType());
     }
+
+    public ArrayList<Status> getTimeline(TimelineType type, int limit) throws IOException {
+        return getTimeline(type, limit, null);
+    }
+
+    public ArrayList<Status> getTimeline(TimelineType type, String sinceId) throws IOException {
+        return getTimeline(type, 20, sinceId);
+    }
+
+    public ArrayList<Status> getTimeline(TimelineType type) throws IOException {
+        return getTimeline(type, 20, null);
+    }
+
 
     // ---- Accounts ----
 

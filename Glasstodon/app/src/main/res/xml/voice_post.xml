@@ -1,7 +1,6 @@
 <!-- For more information about voice trigger, check out: https://developers.google.com/glass/develop/gdk/starting-glassware -->
 <trigger command="POST_AN_UPDATE">
     <constraints
-        camera="true"
         network="true" />
     <input prompt="@string/post_update_prompt" />
 </trigger>

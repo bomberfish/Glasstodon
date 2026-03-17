@@ -8,4 +8,5 @@
     <string name="history_empty_detail">No scan history</string>
     <string name="post_update_prompt">What\'s up?</string>
     <string name="glass_custom_open">show my feed</string>
+    <string name="glass_custom_post_photo">post a picture</string>
 </resources>
