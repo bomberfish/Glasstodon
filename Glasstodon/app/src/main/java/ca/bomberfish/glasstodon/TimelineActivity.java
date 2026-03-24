@@ -292,14 +292,15 @@ public class TimelineActivity extends Activity {
         card.setIcon(R.drawable.ic_glass_logo);
         card.setFootnote(buildFootnote(actionable));
         card.setTimestamp(p.format(Instant.parse(actionable.createdAt)) + "  ");
-        card.setHeading(actionable.account.getDisplayNameOrUsername());
-        card.setSubheading(actionable.account.acct);
         if (hasMedia) {
             if (actionable.content.isEmpty()) {
                 card.setText(actionable.account.getDisplayNameOrUsername() + " posted:");
             } else {
                 card.setTimestamp(actionable.account.getDisplayNameOrUsername() + " · " + p.format(Instant.parse(actionable.createdAt)) + "  ");
             }
+        } else {
+            card.setHeading(actionable.account.getDisplayNameOrUsername());
+            card.setSubheading(actionable.account.acct);
         }
         card.setAttributionIcon(getIconForPrivacy(actionable.visibility));
 
