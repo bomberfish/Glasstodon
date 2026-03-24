@@ -42,7 +42,7 @@ public class MastoAPITest {
         } else {
             System.out.println("Using token: " + token.substring(0, 4) + "..." + token.substring(token.length() - 4));
         }
-        api = new MastoAPI(instance, token, true);
+        api = new MastoAPI(instance, token, true, null);
     }
 
     @Test
